@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  backend:
+    build: ./backend
+    env_file:
+      - ./backend/.env
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgres://user:password@postgres:5432/meubanco
+    depends_on:
+      - postgres
+    networks:
+      - app-net
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3333"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - backend
+    networks:
+      - app-net
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: meubanco
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-net
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    depends_on:
+      - postgres
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - app-net
+
+volumes:
+  postgres_data:
+  grafana_data:
+
+networks:
+  app-net:
+    driver: bridge
