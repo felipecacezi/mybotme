@@ -9,7 +9,9 @@ services:
       - "4000:4000"
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgres://user:password@postgres:5432/meubanco
+    volumes:
+    - ./backend/wait-for.sh:/wait-for.sh
+    command: ["sh", "-c", "chmod +x /wait-for.sh && /wait-for.sh postgres:5432 -- npm run app:dev"]
     depends_on:
       - postgres
     networks:
