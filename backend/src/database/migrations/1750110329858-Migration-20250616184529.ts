@@ -3,7 +3,7 @@ import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
 export class Migration202506161845291750110329858 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.addColumn("user", new TableColumn({
+        await queryRunner.addColumn("users", new TableColumn({
             name: "jwt_token",
             type: "varchar",
             isNullable: true
@@ -11,7 +11,7 @@ export class Migration202506161845291750110329858 implements MigrationInterface 
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.dropColumn("user", "jwt_token");
+        await queryRunner.dropColumn("users", "jwt_token");
     }
 
 }
