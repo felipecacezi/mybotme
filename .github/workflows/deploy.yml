@@ -23,6 +23,6 @@ jobs:
           script: |
             cd /home/mybotme
             git pull origin master
-
-            # Opcional: caso use Docker Swarm
-            docker stack deploy -c docker-compose.yml mybotme
+            docker build -t mybotme-backend:local ./backend
+            docker build -t mybotme-frontend:local ./frontend
+            docker stack deploy -c docker-compose.prod.yml mybotme
