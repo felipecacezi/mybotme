@@ -57,4 +57,4 @@ volumes:
 
 networks:
   app-net:
-    driver: bridge
+    driver: overlay

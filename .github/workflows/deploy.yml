@@ -22,7 +22,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             cd /home/mybotme
-            git pull origin main
+            git pull origin master
 
             # Opcional: caso use Docker Swarm
             docker stack deploy -c docker-compose.yml mybotme
