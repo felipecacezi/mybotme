@@ -10,7 +10,9 @@ services:
     environment:
       - NODE_ENV=production
     volumes:
-    - ./backend/wait-for.sh:/wait-for.sh
+      - ./backend/wait-for.sh:/wait-for.sh
+      - ./backend:/app
+      - /app/node_modules
     command: ["sh", "-c", "chmod +x /wait-for.sh && /wait-for.sh postgres:5432 -- npm run app:dev"]
     depends_on:
       - postgres
@@ -19,10 +21,14 @@ services:
 
   frontend:
     build: ./frontend
+    volumes:
+      - ./frontend:/app  
+      - /app/node_modules
     ports:
       - "3000:3333"
     environment:
       - NODE_ENV=production
+    command: ["npm", "run", "dev"]
     depends_on:
       - backend
     networks:
