@@ -17,7 +17,7 @@ export class Create {
             if (user.length > 0) {
                 throw{
                     status: 400,
-                    message: 'Impossível cadastrar, motivo: usuário ja cadastrado com o e-mail informado.'
+                    message: 'Impossível cadastrar: usuário ja cadastrado com o e-mail informado.'
                 }                
             }            
         } catch (error: any) {            
