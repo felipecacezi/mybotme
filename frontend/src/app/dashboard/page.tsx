@@ -1,3 +1,5 @@
+"use client"
+import { useEffect } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
@@ -13,8 +15,25 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { useRouter } from 'next/navigation';
 
 export default function Page() {
+  const router = useRouter();
+  const handleCheckSession = async () => {
+    const response = await fetch("/api/auth/session", {
+      method: "GET",
+      credentials: "include",
+    });
+    
+    if (!response.ok) {
+      router.push('/auth/login');
+    }
+  };
+
+  useEffect(()=>{
+    handleCheckSession()
+  },[])
+
   return (
     <SidebarProvider>
       <AppSidebar />

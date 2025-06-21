@@ -32,7 +32,7 @@ export default function LoginPage() {
       if (!response.ok) {
         throw new Error("Não foi possivel fazer login, e-mail ou senha inválidos.");
       }      
-      router.push('/');
+      router.push('/dashboard');
     } catch (error) {      
       const message = error instanceof Error
         ? error.message

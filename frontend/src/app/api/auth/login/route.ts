@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
     nextResponse.cookies.set("token", data.token, {
       httpOnly: true,
-      secure: true,
+      // secure: true,
       path: "/",
       maxAge: 60 * 60 * 24, // 1 dia
       sameSite: "lax",
