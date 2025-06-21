@@ -7,8 +7,8 @@ export const auth = async (
     password: string
 ) => {
     return await AppDataSource.getRepository(UserEntity)
-        .createQueryBuilder("user")
-        .where(`user.email like :email`, { email })
-        .andWhere(`user.password like :password`, { password })
+        .createQueryBuilder("users")
+        .where(`users.email like :email`, { email })
+        .andWhere(`users.password like :password`, { password })
         .getMany();    
 }
