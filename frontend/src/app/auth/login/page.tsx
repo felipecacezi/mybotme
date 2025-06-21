@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import toast, { Toaster } from "react-hot-toast";
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -20,7 +21,7 @@ export default function LoginPage() {
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKENDAPI_URLBASE}auth/login`, {
+      const response = await fetch(`/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -29,16 +30,17 @@ export default function LoginPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Login inválido");
-      }
-
-      const data = await response.json();
-      console.log("Token recebido:", data.token);
-      
+        throw new Error("Não foi possivel fazer login, e-mail ou senha inválidos.");
+      }      
       router.push('/');
-      // aqui você pode salvar o token, redirecionar, etc.
-    } catch (error) {
-      console.error("Erro ao fazer login:", error);
+    } catch (error) {      
+      const message = error instanceof Error
+        ? error.message
+        : "Não foi possível faze o login, tente novamente mais tarde";
+
+      toast.error(message, {
+        position: "top-right",
+      });
     }
   };
 
@@ -101,6 +103,7 @@ export default function LoginPage() {
           </Card>
         </div>
       </div>
+      <Toaster />
     </div>
   );
 }
