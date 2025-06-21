@@ -30,7 +30,9 @@ export class UserController {
         try {
             const body: User = req.body;
             const user = await this.createService.init(body);                
-            return res.status(201).json(user);
+            return res.status(201).json({
+                message: 'Usuário criado com sucesso'
+            });
         } catch (error: any) {
             const statusCode = error.statusCode ?? 500;
             return res.status(statusCode).json({

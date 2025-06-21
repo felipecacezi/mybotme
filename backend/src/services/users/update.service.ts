@@ -17,7 +17,7 @@ export class Update {
             if (user.length <= 0) {
                 throw{
                     status: 400,
-                    message: 'Impossível alterar, motivo: usuário inválido ou não existente.'
+                    message: 'Impossível alterar: usuário inválido ou não existente.'
                 }                
             }        
         } catch (error: any) {
