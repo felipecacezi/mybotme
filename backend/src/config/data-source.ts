@@ -5,7 +5,7 @@ import path from 'path';
 
 dotenv.config();
 
-const isProd = process.env.NODE_ENV === 'production';
+const isProd = process.env.NODE_ENV === 'development';
 const baseDir = isProd ? 'dist' : 'src';
 
 const AppDataSource = new DataSource({

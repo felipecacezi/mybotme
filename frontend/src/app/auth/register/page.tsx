@@ -20,7 +20,7 @@ export default function RegisterPage() {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKENDAPI_URLBASE}user/create`,
+        `/api/user`,        
         {
           method: "POST",
           headers: {
@@ -47,7 +47,6 @@ export default function RegisterPage() {
           ? error.message
           : "Não foi possível faze o login, tente novamente mais tarde";
       toast.error(message, { position: "top-right" });
-      console.error("Erro ao fazer login:", message);
     }
   };
 
@@ -98,7 +97,7 @@ export default function RegisterPage() {
                     <Label htmlFor="confirmPassword">Confirmar sua senha</Label>
                     <Input
                       id="confirmPassword"
-                      type="confirmPassword"
+                      type="password"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required

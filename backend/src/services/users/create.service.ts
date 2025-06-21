@@ -2,6 +2,7 @@ import { User } from '../../interfaces/User.interface'
 import { createUser } from '../../repositories/users/create.repository'
 import { listByEmail } from '../../repositories/users/list.repository'
 import { userSchema } from '../../schemas/user/create.schema'
+import { saveJwtToken } from '../../repositories/auth/saveJwt.repository'
 import { z } from 'zod'
 
 export class Create {
@@ -16,7 +17,7 @@ export class Create {
             const user = await listByEmail(userData.email)            
             if (user.length > 0) {
                 throw{
-                    status: 400,
+                    statusCode: 400,
                     message: 'Impossível cadastrar: usuário ja cadastrado com o e-mail informado.'
                 }                
             }            
@@ -35,6 +36,8 @@ export class Create {
         }
     }
     async execute(userData: User): Promise<User> {
-        return await createUser({ active: 1,...userData })
+        const user = await createUser({ active: 1,...userData })
+        const jwtToken = await saveJwtToken(user)
+        return { jwt_token: jwtToken, ...user };
     }
 }
