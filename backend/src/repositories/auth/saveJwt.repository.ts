@@ -11,6 +11,7 @@ export const saveJwtToken = async (arUser: User) => {
     const jwt_token = await jwt.sign(
         {
             id: arUser.id,
+            name: arUser.name,
             email: arUser.email,
             password: arUser.password
         },
