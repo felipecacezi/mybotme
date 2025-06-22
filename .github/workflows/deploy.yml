@@ -23,6 +23,8 @@ jobs:
           script: |
             cd /home/mybotme
             git pull origin master
-            docker build -t mybotme-backend:local ./backend
-            docker build -t mybotme-frontend:local ./frontend
+            docker build --no-cache -t mybotme-backend:local ./backend
+            docker build --no-cache -t mybotme-frontend:local ./frontend
             docker stack deploy -c docker-compose.prod.yml mybotme
+            docker service update --force mybotme_backend
+            docker service update --force mybotme_frontend
