@@ -26,12 +26,13 @@ export default function LoginPage() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ email, password }),
       });
 
       if (!response.ok) {
         throw new Error("Não foi possivel fazer login, e-mail ou senha inválidos.");
-      }      
+      }   
       router.push('/dashboard');
     } catch (error) {      
       const message = error instanceof Error
