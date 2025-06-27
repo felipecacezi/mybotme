@@ -30,6 +30,9 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
+import { useRouter } from 'next/navigation';
+
+
 export function NavUser({
   user,
 }: {
@@ -38,8 +41,13 @@ export function NavUser({
     email: string
     avatar: string
   }
-}) {
+}) {  
   const { isMobile } = useSidebar()
+  const router = useRouter();
+
+  const handleProfileClick = () => {    
+    router.push('/dashboard/profile');
+  }
 
   return (
     <SidebarMenu>
@@ -88,9 +96,9 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
+              <DropdownMenuItem onClick={() => handleProfileClick()}>
+                <BadgeCheck/>
+                Minha conta
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <CreditCard />

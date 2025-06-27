@@ -42,11 +42,14 @@ export class UserController {
         }
     }
     async update(req: Request, res: Response): Promise<any> {        
-        const { id } = req.params;      
+        const { id } = req.params;   
+           
         try {
-            const body: User = req.body;
-            const user = await this.updateService.init(body, parseInt(id));                
-            return res.status(200).json(user);
+            const body: User = req.body;            
+            await this.updateService.init(body, parseInt(id));                
+            return res.status(200).json({
+                message: 'Usuário atualizado com sucesso',
+            });
         } catch (error: any) {
             const statusCode = error.statusCode ?? 500;
             return res.status(statusCode).json({
@@ -57,7 +60,7 @@ export class UserController {
     async delete(req: Request, res: Response): Promise<any> {
         const { id } = req.params;        
         try {
-            const userId = this.deleteService.init(parseInt(id))
+            this.deleteService.init(parseInt(id))            
             return res.status(200).json({
                 message: 'Usuário inativado com sucesso'
             });

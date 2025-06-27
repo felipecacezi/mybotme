@@ -10,5 +10,6 @@ export const auth = async (
         .createQueryBuilder("users")
         .where(`users.email like :email`, { email })
         .andWhere(`users.password like :password`, { password })
+        .andWhere(`users.active <> :active`, { active: 2 })
         .getMany();    
 }

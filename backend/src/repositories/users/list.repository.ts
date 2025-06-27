@@ -17,6 +17,6 @@ export const listByEmail = async (email: string) => {
 export const listById = async (id: number) => {
     return await AppDataSource.getRepository(UserEntity)
         .createQueryBuilder("users")
-        .where(`user.id = :id`, { id })
+        .where(`users.id = :id`, { id })
         .getMany();        
 }

@@ -35,6 +35,8 @@ export class Update {
         }
     }
     async execute(userData: User, id: number): Promise<User> {
+        console.log('teste', userData);
+        
         return await updateUser(userData, id)
     }
 }

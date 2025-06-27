@@ -1,18 +1,17 @@
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { jwtVerify } from 'jose'
+import { cookies } from "next/headers";
 
-export const getCurrentUser = async () => {
-  return new Promise((resolve) => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      unsubscribe();
-      resolve(user);
-    });
-  });
-}
+const JWT_SECRET = process.env.NEXT_PUBLIC_JWT_SECRET as string
 
-export const isAuthenticated = async() => {
-  const user = await getCurrentUser();  
-  console.log('User:', user);
+export const actualUserLogged = async () => {
+  const cookieStore = cookies();
+  const token = (await cookieStore).get("token")?.value;  
+  if (!token) {
+      return {};
+  }
+  const secret = new TextEncoder().encode(JWT_SECRET);
+  const { payload } = await jwtVerify(token, secret);
   
-  return user ? true : false;
+  const { id, name, email } = payload;
+  return { id, name, email, token };
 }
