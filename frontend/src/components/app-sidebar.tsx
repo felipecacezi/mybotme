@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import * as React from "react"
+import * as React from "react";
 import {
   Bot,
   Frame,
@@ -8,20 +8,22 @@ import {
   Map,
   PieChart,
   Phone,
-  DollarSign
-} from "lucide-react"
+  DollarSign,
+} from "lucide-react";
 
-import { NavMain } from "@/components/nav-main"
-// import { NavProjects } from "@/components/nav-projects"
-import { NavUser } from "@/components/nav-user"
-import { TeamSwitcher } from "@/components/team-switcher"
+import { NavMain } from "@/components/nav-main";
+import { NavUser } from "@/components/nav-user";
+import { TeamSwitcher } from "@/components/team-switcher";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarRail,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
+import { useQuery } from "@tanstack/react-query";
+import toast, { Toaster } from "react-hot-toast";
+import { useRouter } from 'next/navigation';
 
 const data = {
   user: {
@@ -34,7 +36,7 @@ const data = {
       name: "Don Johnes",
       logo: GalleryVerticalEnd,
       plan: "Max",
-    }
+    },
   ],
   navMain: [
     {
@@ -57,7 +59,7 @@ const data = {
         {
           title: "Configurações",
           url: "#",
-        }
+        },
       ],
     },
     {
@@ -68,9 +70,9 @@ const data = {
         {
           title: "Minha assinatura",
           url: "#",
-        }
+        },
       ],
-    }
+    },
   ],
   projects: [
     {
@@ -89,9 +91,42 @@ const data = {
       icon: Map,
     },
   ],
-}
+};
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const router = useRouter();
+
+  const fetchLoggedUser = async () => {
+    try {
+      const response = await fetch("/api/auth/loggedUser", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(
+          "Você não esta logado, por favor, faça login novamente."
+        );
+      }
+      return data;
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Você não esta logado, por favor, faça login novamente.";
+      toast.error(message, { position: "top-right" });
+      router.push('/auth/login');
+    }
+  };
+
+  const {
+    data: userData
+  } = useQuery({
+    queryKey: ["userData"],
+    queryFn: fetchLoggedUser,
+  });
+  const currentUser = userData?.user || { name: "", email: "", avatar: "" };
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -102,9 +137,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={currentUser} />
       </SidebarFooter>
       <SidebarRail />
+      <Toaster />
     </Sidebar>
-  )
+  );
 }
