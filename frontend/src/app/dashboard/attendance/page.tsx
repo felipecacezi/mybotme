@@ -285,13 +285,13 @@ interface DroppableColumnProps {
 
 function DroppableColumn({ column, clients, onClientClick }: DroppableColumnProps) {
   const { setNodeRef } = useDroppable({ id: column.id })
-  const Icon = column.icon
+  // const Icon = column.icon
 
   return (
     <Card ref={setNodeRef} className="h-fit">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-lg">
-          <Icon className="h-5 w-5" />
+          {/* <Icon className="h-5 w-5" /> */}
           {column.title}
           <Badge variant="secondary" className={column.color}>
             {clients.length}
