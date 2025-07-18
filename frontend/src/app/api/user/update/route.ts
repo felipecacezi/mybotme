@@ -11,13 +11,9 @@ export async function PATCH(req: Request) {
   try {
     const body = await req.json();
     if (body?.newPassword) {
-      changePassHelper(
-        body.newPassword,
-        body.confirmPassword
-      );
+      changePassHelper(body.newPassword, body.confirmPassword);
     }
     const userLogged = await actualUserLogged();
-
     const userUpdate = await fetch(
       `${process.env.NEXT_PUBLIC_BACKENDAPI_URLBASE}user/update/${userLogged.id}`,
       {
@@ -26,7 +22,7 @@ export async function PATCH(req: Request) {
           "Content-Type": "application/json",
           Authorization: `Bearer ${userLogged.token}`,
         },
-        body: JSON.stringify({ password: body?.newPassword }),
+        body: JSON.stringify(body),
       }
     );
 
@@ -42,12 +38,24 @@ export async function PATCH(req: Request) {
       { message: data.message, success: true },
       { status: 200 }
     );
+
+    // Verifica se o backend retornou um novo token
+    if (data.token) {
+      nextResponse.cookies.set("token", data.token, {
+        httpOnly: true,
+        path: "/",
+        maxAge: 60 * 60 * 24, // 1 dia
+        sameSite: "lax",
+        // secure: true, // Descomente em produção para HTTPS
+      });
+    }
+
     return nextResponse;
   } catch (error) {
     const { message, statusCode } = error as CustomError;
     return NextResponse.json(
       {
-        message: message ?? "Ocorreu um desconhecido, contate o suporte",
+        message: message ?? "Ocorreu um erro desconhecido, contate o suporte",
         success: false,
       },
       { status: statusCode ?? 500 }

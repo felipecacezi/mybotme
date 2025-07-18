@@ -3,6 +3,7 @@ import { Create } from '../services/users/create.service'
 import { ListAll } from '../services/users/listAll.service'
 import { Delete } from '../services/users/delete.service'
 import { Update } from '../services/users/update.service'
+import { GetUserCompany } from '../services/company/getUserCompany.service'
 import { Request, Response } from 'express'
 
 export class UserController {
@@ -10,7 +11,8 @@ export class UserController {
         private createService: Create,
         private listAllService: ListAll,
         private deleteService: Delete,
-        private updateService: Update
+        private updateService: Update,
+        private getUserCompany: GetUserCompany
     ) {
 
     }
@@ -63,6 +65,22 @@ export class UserController {
             this.deleteService.init(parseInt(id))            
             return res.status(200).json({
                 message: 'Usuário inativado com sucesso'
+            });
+        } catch (error: any) {
+            const statusCode = error.statusCode ?? 500;
+            return res.status(statusCode).json({
+                message: error.errors
+            });
+        }
+    }
+
+    async getCompany(req: Request, res: Response): Promise<any> {
+        const { id } = req.params;        
+        try {
+            const company = await this.getUserCompany.init(parseInt(id));                     
+            return res.status(200).json({
+                message: 'Empresa encontrada com sucesso',
+                data: company
             });
         } catch (error: any) {
             const statusCode = error.statusCode ?? 500;

@@ -92,7 +92,7 @@ export default function Page() {
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       <div className="container mx-auto px-4 py-16">
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {plans.map((plan, index) => (
+          {plans.map((plan) => (
             <Card
               key={plan.name}
               className={`relative ${

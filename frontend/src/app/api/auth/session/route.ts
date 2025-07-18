@@ -2,6 +2,11 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
+type CustomError = {
+  message: string;
+  statusCode: number;
+};
+
 export async function GET() {
   try {
     const cookieStore = await cookies();
@@ -21,7 +26,8 @@ export async function GET() {
     }, { 
         status: 200 
     });
-  } catch (err) {
-    return NextResponse.json({ message: "Token inválido ou expirado" }, { status: 401 });
+  } catch (error) {
+    const { message, statusCode } = error as CustomError;
+    return NextResponse.json({ message: message ?? "Token inválido ou expirado" }, { status: statusCode ?? 401 });
   }
 }

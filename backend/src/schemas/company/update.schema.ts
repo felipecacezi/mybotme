@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const updateCompanySchema = z.object({
   cnpj: z.string()
-    .length(18, 'O CNPJ deve ter 18 caracteres (incluindo formatação)')
+    .length(14, 'O CNPJ deve ter 18 caracteres (incluindo formatação)')
     .optional(),
   name: z.string()
     .min(3, 'O nome da empresa deve ter no mínimo 3 caracteres')

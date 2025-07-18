@@ -12,7 +12,3 @@ AppDataSource.initialize()
 }).catch((err: any) => {
   console.error('Erro ao conectar com o banco:', err);
 });
-
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT || 3000}`);
-});

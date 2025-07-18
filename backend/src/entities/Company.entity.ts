@@ -37,6 +37,9 @@ export class Company {
   @Column({ type: 'varchar', length: 9, nullable: true })
   zipcode?: string;
 
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  number?: string;
+
   @CreateDateColumn({ name: 'createdAt' })
   createdAt!: Date;
 

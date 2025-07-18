@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 
+type CustomError = {
+  message: string;
+  statusCode: number;
+};
 
 export async function POST(req: Request) {
     try {

@@ -13,9 +13,43 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Eye, EyeOff, User, Lock, Save, AlertCircle } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  User,
+  Lock,
+  Save,
+  AlertCircle,
+  Building2,
+  MapPin,
+  Loader2,
+} from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+
+interface CompanyData {
+  id?: number;
+  cnpj: string;
+  name: string;
+  street?: string;
+  number?: string;
+  district?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  zipcode?: string;
+}
+
+interface ViaCepResponse {
+  cep: string;
+  logradouro: string;
+  complemento: string;
+  bairro: string;
+  localidade: string;
+  uf: string;
+  erro?: boolean;
+}
 
 export default function UserSettings() {
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -36,6 +70,18 @@ export default function UserSettings() {
     password: "",
     confirmPassword: "",
   });
+  const [companyData, setCompanyData] = useState<CompanyData>({
+    cnpj: "",
+    name: "",
+    street: "",
+    number: "",
+    district: "",
+    city: "",
+    state: "",
+    country: "Brasil",
+    zipcode: "",
+  });
+  const [isLoadingCep] = useState(false);
   const router = useRouter();
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
@@ -110,7 +156,7 @@ export default function UserSettings() {
   const handleDeleteAccount = async (e: React.FormEvent) => {
     e.preventDefault();
 
-     try {
+    try {
       const response = await fetch("/api/user/delete", {
         method: "DELETE",
         headers: {
@@ -140,7 +186,198 @@ export default function UserSettings() {
         position: "top-right",
       });
     }
+  };
+
+  const fetchLoggedUser = async () => {
+    try {
+      const response = await fetch("/api/auth/loggedUser", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(
+          "Você não esta logado, por favor, faça login novamente."
+        );
+      }
+      return data;
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Você não esta logado, por favor, faça login novamente.";
+      toast.error(message, { position: "top-right" });
+      router.push("/auth/login");
+    }
+  };
+
+  const { data: userData } = useQuery({
+    queryKey: ["userData"],
+    queryFn: fetchLoggedUser,
+  });
+
+  const handleCompanySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    console.log("Submitting company data:", companyData);
+
+    try {
+      const response = await fetch("/api/company/createUpdate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(companyData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Erro ao atualizar dados da empresa"
+        );
+      }
+
+      const responseData = await response.json();
+      setCompanyData(responseData.data.data);
+      toast.success("Dados da empresa atualizados com sucesso!", {
+        position: "top-right",
+      });
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Erro ao atualizar dados da empresa, tente novamente mais tarde.";
+      toast.error(message, { position: "top-right" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatCNPJ = (value: string) => {
+    const numbers = value.replace(/\D/g, "");
+    return numbers.replace(
+      /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/,
+      "$1.$2.$3/$4-$5"
+    );
+  };
+
+  const handleCNPJChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCNPJ(e.target.value);
+    if (formatted.length <= 18) {
+      setCompanyData((prev) => ({ ...prev, cnpj: formatted }));
+    }
+  };
+
+  const formatZipCode = (value: string) => {
+    const numbers = value.replace(/\D/g, "");
+    return numbers.replace(/^(\d{5})(\d{3})$/, "$1-$2");
+  };
+
+  const fetchAddressByCep = async (cep: string) => {
+    const cleanCep = cep.replace(/\D/g, "");
+    if (cleanCep.length !== 8) return;
+
+    // setIsLoadingCep(true)
+    try {
+      const response = await fetch(
+        `https://viacep.com.br/ws/${cleanCep}/json/`
+      );
+      const data: ViaCepResponse = await response.json();
+
+      if (data.erro) {
+        // setMessage("CEP não encontrado")
+        return;
+      }
+      setCompanyData((prev) => ({
+        ...prev,
+        street: data.logradouro || prev.street,
+        district: data.bairro || prev.district,
+        city: data.localidade || prev.city,
+        state: data.uf || prev.state,
+      }));
+
+      // setMessage("Endereço preenchido automaticamente")
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Endereço não encontrado, verifique o CEP e tente novamente.";
+      toast.error(message, { position: "top-right" });
+      // setMessage("Erro ao buscar CEP")
+    } finally {
+      // setIsLoadingCep(false)
+    }
+  };
+
+  const handleZipCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatZipCode(e.target.value);
+    setCompanyData((prev) => ({ ...prev, zipcode: formatted }));
+
+    // Auto-fetch address when zipcode is complete
+    const cleanCep = formatted.replace(/\D/g, "");
+    if (cleanCep.length === 8) {
+      fetchAddressByCep(formatted);
+    }
+  };
+
+  const fetchCompany = async () => {
+    try {
+      const response = await fetch("/api/company/getLoggedCompany", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || "Erro ao buscar dados da empresa");
+      }
+
+      return data.data;
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Erro ao buscar dados da empresa, tente novamente mais tarde";
+      toast.error(message, { position: "top-right" });
+    }
+  };
+
+  const { data: companyApiData } = useQuery({
+    queryKey: ["companyData"],
+    queryFn: fetchCompany,
+  });
+
+  useEffect(() => {
+    if (userData?.user) {
+      setProfileData({
+        name: userData.user.name,
+        email: userData.user.email,
+      });
+    }
+  }, [userData]);
+
+  function sanitizeCompanyData(data: CompanyData[]): CompanyData {
+    const company = data[0] ?? {};
+    return {
+      id: company.id ?? undefined,
+      cnpj: company.cnpj ?? "",
+      name: company.name ?? "",
+      street: company.street ?? "",
+      number: company.number ?? "",
+      district: company.district ?? "",
+      city: company.city ?? "",
+      state: company.state ?? "",
+      country: company.country ?? "Brasil",
+      zipcode: company.zipcode ?? "",
+    };
   }
+
+  useEffect(() => {
+    if (companyApiData) {
+      const safeData = Array.isArray(companyApiData)
+        ? companyApiData
+        : [companyApiData];
+      setCompanyData(sanitizeCompanyData(safeData));
+    }
+  }, [companyApiData]);
 
   return (
     <div className="min-h-screen bg-gray-50/50 p-4 md:p-8">
@@ -341,6 +578,223 @@ export default function UserSettings() {
                       <div className="flex items-center space-x-2">
                         <Lock className="h-4 w-4" />
                         <span>Alterar Senha</span>
+                      </div>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center space-x-2">
+                <Building2 className="h-5 w-5" />
+                <CardTitle>Informações básicas da Empresa</CardTitle>
+              </div>
+              <CardDescription>
+                Atualize os dados básicos da sua empresa
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleCompanySubmit} className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="cnpj">CNPJ</Label>
+                    <Input
+                      id="cnpj"
+                      value={companyData.cnpj}
+                      onChange={handleCNPJChange}
+                      placeholder="00.000.000/0000-00"
+                      maxLength={18}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Nome da Empresa</Label>
+                    <Input
+                      id="name"
+                      value={companyData.name}
+                      onChange={(e) =>
+                        setCompanyData((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
+                      placeholder="Digite o nome da empresa"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="min-w-[120px]"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center space-x-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Salvando...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <Save className="h-4 w-4" />
+                        <span>Salvar</span>
+                      </div>
+                    )}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-5 w-5" />
+                <CardTitle>Endereço da empresa</CardTitle>
+              </div>
+              <CardDescription>
+                Informações de localização da empresa
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleCompanySubmit} className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="zipcode">CEP</Label>
+                    <div className="relative">
+                      <Input
+                        id="zipcode"
+                        value={companyData.zipcode}
+                        onChange={handleZipCodeChange}
+                        placeholder="00000-000"
+                        maxLength={9}
+                      />
+                      {isLoadingCep && (
+                        <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-gray-400" />
+                      )}
+                    </div>
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label htmlFor="street">Logradouro</Label>
+                    <Input
+                      id="street"
+                      value={companyData.street}
+                      onChange={(e) =>
+                        setCompanyData((prev) => ({
+                          ...prev,
+                          street: e.target.value,
+                        }))
+                      }
+                      placeholder="Rua, Avenida, etc."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="number">Número</Label>
+                    <Input
+                      id="number"
+                      value={companyData.number}
+                      onChange={(e) =>
+                        setCompanyData((prev) => ({
+                          ...prev,
+                          number: e.target.value,
+                        }))
+                      }
+                      placeholder="123"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="district">Bairro</Label>
+                    <Input
+                      id="district"
+                      value={companyData.district}
+                      onChange={(e) =>
+                        setCompanyData((prev) => ({
+                          ...prev,
+                          district: e.target.value,
+                        }))
+                      }
+                      placeholder="Digite o bairro"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="city">Cidade</Label>
+                    <Input
+                      id="city"
+                      value={companyData.city}
+                      onChange={(e) =>
+                        setCompanyData((prev) => ({
+                          ...prev,
+                          city: e.target.value,
+                        }))
+                      }
+                      placeholder="Digite a cidade"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="state">Estado</Label>
+                    <Input
+                      id="state"
+                      value={companyData.state}
+                      onChange={(e) =>
+                        setCompanyData((prev) => ({
+                          ...prev,
+                          state: e.target.value,
+                        }))
+                      }
+                      placeholder="Digite o estado"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="country">País</Label>
+                    <Input
+                      id="country"
+                      value={companyData.country}
+                      onChange={(e) =>
+                        setCompanyData((prev) => ({
+                          ...prev,
+                          country: e.target.value,
+                        }))
+                      }
+                      placeholder="Digite o país"
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-lg bg-blue-50 p-4">
+                  <h4 className="text-sm font-medium text-blue-900 mb-2">
+                    💡 Dica:
+                  </h4>
+                  <p className="text-sm text-blue-800">
+                    Digite o CEP para preencher automaticamente os campos de
+                    endereço
+                  </p>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="min-w-[120px]"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center space-x-2">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Salvando...</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2">
+                        <Save className="h-4 w-4" />
+                        <span>Salvar</span>
                       </div>
                     )}
                   </Button>

@@ -22,9 +22,9 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/auth/login", request.url))
     }
     const secret = new TextEncoder().encode(JWT_SECRET)
-    const { payload } = await jwtVerify(token, secret)
+    await jwtVerify(token, secret)
     return NextResponse.next({})
-  } catch (err) {
+  } catch {
     return NextResponse.redirect(new URL("/auth/login", request.url))
   }
 }

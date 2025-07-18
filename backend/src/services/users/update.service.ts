@@ -5,7 +5,7 @@ import { updateSchema, idSchema } from '../../schemas/user/update.schema'
 import { z } from 'zod'
 
 export class Update {
-    async init(userData: User, id: number): Promise<User> {        
+    async init(userData: User, id: number): Promise<User> {                
         await this.validate(userData, id)
         return await this.execute(userData, id)
     }
@@ -34,9 +34,7 @@ export class Update {
             }
         }
     }
-    async execute(userData: User, id: number): Promise<User> {
-        console.log('teste', userData);
-        
+    async execute(userData: User, id: number): Promise<User> {        
         return await updateUser(userData, id)
     }
 }
